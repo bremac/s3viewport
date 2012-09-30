@@ -17,8 +17,10 @@ mount.s3viewport <mountpoint> [--bucket NAME] [--access-key AKEY] [--secret-key 
 fusermount -u <mountpoint>
 ```
 
-It's sufficient to provide mount.s3viewport with a mount point - you will be
-prompted for any required information you omit from the command line.
+It's sufficient to only provide mount.s3viewport with a mount point - you
+will be prompted for any required information you omit from the command line.
+For more information on command-line parameters, see
+`mount.s3viewport --help`.
 
 
 Configuration
@@ -57,7 +59,7 @@ mount-points:
             max-bytes: 10M
 
     ~/mnt/two:
-        bucket: bucket-twp
+        bucket: bucket-two
         access-key: ASIU&@#>LSAUP(!@OUPE
 ```
 
