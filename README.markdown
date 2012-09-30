@@ -43,7 +43,7 @@ represents the value `b` in a subsection `a`:
 * `file-cache.lifetime:` number of seconds to keep files cached after
   retrieval
 * `file-cache.max-bytes:` maximum total bytes that the file cache may
-  occupy
+  occupy. May be written as 10M, 4K, etc.
 * `file-cache.max-files:` maximum number of files to keep in the cache
 * `bucket:` name of the S3 bucket to mount
 * `access-key:` access key to use to mount the S3 bucket
