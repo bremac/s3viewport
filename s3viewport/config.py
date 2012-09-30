@@ -5,13 +5,13 @@ import sys
 
 import yaml
 
-from s3viewport.utils import filter_dict
+from s3viewport.utils import filter_dict, map_dict
 
 
 REQUIRED_FIELDS = (
     # setting        prompt          input method
     ('mount-point', 'Mount point: ', raw_input),
-    ('name',        'S3 bucket: ',   raw_input),
+    ('bucket',      'S3 bucket: ',   raw_input),
     ('access-key',  'Access key: ',  raw_input),
     ('secret-key',  'Secret key: ',  getpass.getpass),
 )
@@ -24,7 +24,7 @@ def read_command_line(merged_conf={}):
 
     parser.add_argument('mount-point',
                         help='where to mount the bucket')
-    parser.add_argument('--bucket', dest='name',
+    parser.add_argument('--bucket', dest='bucket',
                         help='S3 bucket to mount')
     parser.add_argument('--access-key', dest='access-key',
                         help='access key for the bucket')
@@ -61,28 +61,16 @@ def read_configuration_file(path, mount_point, merged_conf={}):
         conf = yaml.load(f)
 
     default_conf = conf.get('defaults', {})
-    all_buckets = conf.get('buckets', [])
+    mount_points = conf.get('mount-points', {})
 
     # Expand all mount points to their absolute paths before comparing
-    # against the select mount point (which is already expanded.)
-    for b in all_buckets:
-        bucket_mount_point = b.get('mount-point')
-        if bucket_mount_point:
-            b['mount-point'] = os.path.expanduser(bucket_mount_point)
+    # against the selected mount point (which is already expanded.)
+    mount_points = map_dict(mount_points,
+                            lambda k, v: (os.path.expanduser(k), v))
 
-    buckets = [ b for b in all_buckets if b['mount-point'] == mount_point ]
-
-    if len(buckets) > 1:
-        msg = 'error: multiple candidate buckets for mount point "{0}"'
-        print msg.format(mount_point)
-        sys.exit(1)
-    elif len(buckets) == 1:
-        bucket_conf = buckets[0]
-    elif len(buckets) == 0:
-        bucket_conf = {}
-
+    mount_point_conf = mount_points.get(mount_point, {})
     merged_conf.update(default_conf)
-    merged_conf.update(bucket_conf)
+    merged_conf.update(mount_point_conf)
 
     return merged_conf
 

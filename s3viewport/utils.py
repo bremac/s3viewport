@@ -6,13 +6,15 @@ def filter_dict(dictionary, pred):
     pred(key, value) is True.
 
     """
-    filtered_dict = {}
+    return dict((k, v) for k, v in dictionary.items() if pred(k, v))
 
-    for k, v in dictionary.items():
-        if pred(k, v):
-            filtered_dict[k] = v
 
-    return filtered_dict
+def map_dict(dictionary, transform):
+    """Return a dict containing the results of applying transform(k, v)
+    to all items in the dictionary.
+
+    """
+    return dict(transform(k, v) for k, v in dictionary.items())
 
 
 def partition(pred, iterable):
