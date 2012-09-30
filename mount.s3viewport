@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+# -*- mode: Python; -*-
+
+import s3viewport.filesystem
+
+
+s3viewport.filesystem.run()

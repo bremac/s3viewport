@@ -5,7 +5,6 @@ import os
 import os.path
 import posixpath
 import stat
-import sys
 import tempfile
 import threading
 import time
@@ -15,6 +14,9 @@ import boto.s3.prefix
 from boto.s3.connection import S3Connection
 from fuse import FUSE, FuseOSError, Operations, LoggingMixIn
 
+import s3viewport.config
+from s3viewport.utils import parse_value_with_si_suffix
+
 
 class BasePathCache(object):
     class Entry(object):
@@ -22,8 +24,8 @@ class BasePathCache(object):
             self.path = path
             self.timestamp = datetime.now()
 
-    def __init__(self, lifetime=timedelta(3600)):
-        self.lifetime = lifetime
+    def __init__(self, conf):
+        self.lifetime = timedelta(seconds=conf['lifetime'])
         self.cache = {}
 
     def add(self, path, *args, **kwargs):
@@ -76,8 +78,8 @@ class S3AttributeCache(BasePathCache):
 
             self.last_modified = time.mktime(last_modified.timetuple())
 
-    def __init__(self):
-        super(S3AttributeCache, self).__init__(lifetime=timedelta(seconds=3600))
+    def __init__(self, conf):
+        super(S3AttributeCache, self).__init__(conf)
 
     def __getitem__(self, path):
         return self.cache[path]
@@ -93,14 +95,17 @@ class S3DirectoryCache(BasePathCache):
             super(S3DirectoryCache.Entry, self).__init__(path)
             self.children = children
 
-    def __init__(self):
-        super(S3DirectoryCache, self).__init__(lifetime=timedelta(seconds=30))
+    def __init__(self, conf):
+        super(S3DirectoryCache, self).__init__(conf)
 
     def __getitem__(self, path):
         return self.cache[path].children
 
 
 class S3FileCache(BasePathCache):
+    """
+
+    """
 
     class Entry(BasePathCache.Entry):
         def __init__(self, path, path_in_cache, size):
@@ -108,11 +113,11 @@ class S3FileCache(BasePathCache):
             self.path_in_cache = path_in_cache
             self.size = size
 
-    def __init__(self):
-        super(S3FileCache, self).__init__(lifetime=timedelta(seconds=3600))
+    def __init__(self, conf):
+        super(S3FileCache, self).__init__(conf)
 
-        self.maximum_size_bytes = 100 * 1024 * 1024
-        self.maximum_files = 1000
+        self.maximum_size_bytes = parse_value_with_si_suffix(conf['max-bytes'])
+        self.maximum_files = conf['max-files']
 
         self.files_by_path = {}
         self.files_lru = deque()
@@ -177,13 +182,13 @@ class S3Viewport(LoggingMixIn, Operations):
     FILE_MODE = stat.S_IFREG | 0600
     DIRECTORY_MODE = stat.S_IFDIR | 0700
 
-    def __init__(self, bucket_name, access_key, secret_key):
-        connection = S3Connection(access_key, secret_key)
-        self.bucket = connection.lookup(bucket_name)
+    def __init__(self, conf):
+        connection = S3Connection(conf['access-key'], conf['secret-key'])
+        self.bucket = connection.lookup(conf['name'])
         self._lock = threading.RLock()
-        self.attribute_cache = S3AttributeCache()
-        self.file_cache = S3FileCache()
-        self.directory_cache = S3DirectoryCache()
+        self.attribute_cache = S3AttributeCache(conf['attribute-cache'])
+        self.file_cache = S3FileCache(conf['file-cache'])
+        self.directory_cache = S3DirectoryCache(conf['directory-cache'])
 
         self.gid = os.getgid()
         self.uid = os.getuid()
@@ -288,12 +293,14 @@ class S3Viewport(LoggingMixIn, Operations):
         }
 
 
+def run():
+    conf = s3viewport.config.get_configuration()
+    fs = s3viewport.filesystem.S3Viewport(conf)
+    fuse = FUSE(fs,
+                conf['mount-point'],
+                foreground=conf['foreground'],
+                nothreads=True)
+
+
 if __name__ == '__main__':
-    argv = sys.argv
-
-    if len(argv) != 5:
-        print('usage: %s <bucket> <mountpoint> <access key> <secret key>' % argv[0])
-        exit(1)
-
-    fs = S3Viewport(argv[1], argv[3], argv[4])
-    fuse = FUSE(fs, argv[2], foreground=True, nothreads=True)
+    run()
