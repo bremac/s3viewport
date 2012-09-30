@@ -33,7 +33,27 @@ Settings are configured in one of two sections:
 * `mount-points`, which contains a mapping from mount point locations to
   settings for that particular mount point.
 
-Consider the following configuration file:
+Each collection of settings can specify the following values, where `a.b`
+represents the value `b` in a subsection `a`:
+
+* `attribute-cache.lifetime:` the number of seconds to keep file metadata
+  cached after retrieval
+* `directory-cache.lifetime:` number of seconds to keep directory listings
+  cached after retrieval
+* `file-cache.lifetime:` number of seconds to keep files cached after
+  retrieval
+* `file-cache.max-bytes:` maximum total bytes that the file cache may
+  occupy
+* `file-cache.max-files:` maximum number of files to keep in the cache
+* `bucket:` name of the S3 bucket to mount
+* `access-key:` access key to use to mount the S3 bucket
+* `secret-key:` secret key to use to mount the S3 bucket
+* `foreground:` boolean set to true if `s3viewport` should not daemonize
+  itself
+* `no-input:` boolean set to true if `s3viewport` should not prompt for
+  missing S3 credentials
+
+As an example, consider the following configuration file:
 
 ```yaml
 defaults:
