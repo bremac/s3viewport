@@ -10,6 +10,9 @@ from s3viewport.utils import expandpath, filter_dict, map_dict, merge_dicts
 
 # Defaults for file-only settings which may be omitted
 DEFAULT_SETTINGS = {
+    'foreground': False,
+    'no-input': False,
+
     'attribute-cache': {
         'lifetime': 3600,
     },
@@ -54,10 +57,10 @@ def read_command_line():
                         help='path to the configuration file')
 
     parser.add_argument('--no-input', dest='no-input',
-                        default=False, action='store_true',
+                        action='store_true', default=None,
                         help="don't prompt for missing information")
     parser.add_argument('--foreground', dest='foreground',
-                        default=False, action='store_true',
+                        action='store_true', default=None,
                         help='run filesystem server in the foreground')
 
     # TODO: Describe configuration file format
