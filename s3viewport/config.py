@@ -5,7 +5,7 @@ import sys
 
 import yaml
 
-from s3viewport.utils import expandpath, filter_dict, map_dict
+from s3viewport.utils import expandpath, filter_dict, map_dict, merge_dicts
 
 
 # Defaults for file-only settings which may be omitted
@@ -35,7 +35,7 @@ REQUIRED_FIELDS = (
 )
 
 
-def read_command_line(merged_conf={}):
+def read_command_line():
     parser = argparse.ArgumentParser(description='TODO: Description')
 
     # TODO: Describe the utility
@@ -63,10 +63,7 @@ def read_command_line(merged_conf={}):
     # TODO: Describe configuration file format
 
     args = parser.parse_args()
-    arg_conf = filter_dict(vars(args), lambda k, v: v is not None)
-    merged_conf.update(arg_conf)
-
-    return merged_conf
+    return filter_dict(vars(args), lambda k, v: v is not None)
 
 
 def read_configuration_file(path, mount_point, merged_conf={}):
@@ -86,8 +83,8 @@ def read_configuration_file(path, mount_point, merged_conf={}):
     mount_points = map_dict(mount_points, lambda k, v: (expandpath(k), v))
 
     mount_point_conf = mount_points.get(mount_point, {})
-    merged_conf.update(default_conf)
-    merged_conf.update(mount_point_conf)
+    merge_dicts(merged_conf, default_conf)
+    merge_dicts(merged_conf, mount_point_conf)
 
     return merged_conf
 
@@ -116,14 +113,14 @@ def get_configuration(defaults=DEFAULT_SETTINGS):
     # We need to read the command-line arguments first to determine the
     # configuration directory and mount point, but we merge them last
     # into the main configuration so they have the highest precedence.
-    args = read_command_line()
-    config_path = args.pop('config-file')
-    mount_point = expandpath(args['mount-point'])
-    args['mount-point'] = mount_point
+    arg_conf = read_command_line()
+    config_path = arg_conf.pop('config-file')
+    mount_point = expandpath(arg_conf['mount-point'])
+    arg_conf['mount-point'] = mount_point
 
     merged_conf = dict(defaults)
     merged_conf = read_configuration_file(config_path, mount_point, merged_conf)
-    merged_conf.update(args)
+    merge_dicts(merged_conf, arg_conf)
 
     if merged_conf.get('no-input', False):
         validate_missing_information(merged_conf)

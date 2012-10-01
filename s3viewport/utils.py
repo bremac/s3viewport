@@ -1,3 +1,4 @@
+import collections
 import itertools
 import os
 
@@ -25,6 +26,27 @@ def map_dict(dictionary, transform):
 
     """
     return dict(transform(k, v) for k, v in dictionary.items())
+
+
+def merge_dicts(dest, src):
+    """Recursively merge two dicts together, such that all non-dictionary
+    values in `dest` are replaced with those in `src`, but all dict values in
+    `dest` are merged with the corresponding dict in `src`.
+
+    """
+
+    for k, v in src.items():
+        if isinstance(v, collections.Mapping):
+            dest_v = dest.get(k, {})
+            if not isinstance(dest_v, collections.Mapping):
+                msg = "Attempted to merge {0!r} with {1!r}".format(dest_v, v)
+                raise TypeError(msg)
+
+            dest[k] = merge_dicts(dest_v, v)
+        else:
+            dest[k] = src[k]
+
+    return dest
 
 
 def partition(pred, iterable):
