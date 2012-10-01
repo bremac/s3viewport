@@ -1,9 +1,6 @@
 from distutils.core import setup
 
 
-requirements = 
-
-
 setup(name='s3viewport',
       version='20120930',
       description='A FUSE filesystem for viewing S3 buckets',
