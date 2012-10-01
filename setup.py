@@ -1,6 +1,14 @@
 from distutils.core import setup
 
 
+requirements = [
+    'fusepy (>=2.0.1)',
+    'boto (>=2.6.0)',
+    'iso8601 (>=0.1.4)',
+    'PyYAML (>=3.10)',
+]
+
+
 setup(name='s3viewport',
       version='20120930',
       description='A FUSE filesystem for viewing S3 buckets',
@@ -10,10 +18,6 @@ setup(name='s3viewport',
       packages=['s3viewport'],
       package_dir={'s3viewport': 's3viewport'},
       scripts=['mount.s3viewport'],
-      requires=[
-          'fusepy (>=2.0.1)',
-          'boto (>=2.6.0)',
-          'iso8601 (>=0.1.4)',
-          'PyYAML (>=3.10)',
-      ],
+      install_requires=requirements,
+      requires=requirements,
       provides=['s3viewport'])
