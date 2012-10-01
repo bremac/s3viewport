@@ -173,8 +173,8 @@ class S3Viewport(LoggingMixIn, Operations):
 
     """
 
-    FILE_MODE = stat.S_IFREG | 0600
-    DIRECTORY_MODE = stat.S_IFDIR | 0700
+    FILE_MODE = stat.S_IFREG | 0400
+    DIRECTORY_MODE = stat.S_IFDIR | 0500
 
     def __init__(self, conf):
         connection = S3Connection(conf['access-key'], conf['secret-key'])
