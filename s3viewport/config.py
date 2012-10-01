@@ -8,6 +8,24 @@ import yaml
 from s3viewport.utils import filter_dict, map_dict
 
 
+# Defaults for file-only settings which may be omitted
+DEFAULT_SETTINGS = {
+    'attribute-cache': {
+        'lifetime': 3600
+    },
+    'directory-cache': {
+        'lifetime': 3600
+    },
+    'file-cache': {
+        'lifetime': 60,
+        'max-bytes': '100M',
+        'max-files': 1000
+    },
+}
+
+
+# Fields which the user must somehow specify; if they are omitted, the user
+# will by presented with the specified prompt using the given input method.
 REQUIRED_FIELDS = (
     # setting        prompt          input method
     ('mount-point', 'Mount point: ', raw_input),
@@ -95,13 +113,18 @@ def request_missing_information(conf):
     return conf
 
 
-def get_configuration(defaults={}):
-    merged_conf = dict(defaults)
-    merged_conf = read_command_line(merged_conf)
+def get_configuration(defaults=DEFAULT_SETTINGS):
+    # We need to read the command-line arguments first to determine the
+    # configuration directory and mount point, but we merge them last
+    # into the main configuration so they have the highest precedence.
+    args = read_command_line()
+    config_path = args.pop('config-file')
+    mount_point = os.path.expanduser(args['mount-point'])
 
-    config_path = merged_conf.pop('config-file')
-    mount_point = os.path.expanduser(merged_conf['mount-point'])
+    merged_conf = dict(defaults)
     merged_conf = read_configuration_file(config_path, mount_point, merged_conf)
+    merged_conf.update(args)
+
     if merged_conf.get('no-input', False):
         validate_missing_information(merged_conf)
     else:
