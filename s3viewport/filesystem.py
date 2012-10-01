@@ -15,7 +15,7 @@ from boto.s3.connection import S3Connection
 from fuse import FUSE, FuseOSError, Operations, LoggingMixIn
 
 import s3viewport.config
-from s3viewport.utils import parse_value_with_si_suffix
+from s3viewport.utils import filter_dict, parse_value_with_si_suffix
 
 
 class BasePathCache(object):
@@ -46,14 +46,8 @@ class BasePathCache(object):
 
     def expire(self):
         now = datetime.now()
-
-        unexpired = {}
-
-        for k, entry in self.cache.items():
-            if entry.timestamp + self.lifetime >= now:
-                unexpired[k] = entry
-
-        self.cache = unexpired
+        self.cache = filter_dict(
+            self.cache, lambda k, v: v.timestamp + self.lifetime >= now)
 
     def purge(self):
         self.cache = {}
