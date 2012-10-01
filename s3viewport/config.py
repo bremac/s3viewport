@@ -11,15 +11,15 @@ from s3viewport.utils import expandpath, filter_dict, map_dict, merge_dicts
 # Defaults for file-only settings which may be omitted
 DEFAULT_SETTINGS = {
     'attribute-cache': {
-        'lifetime': 3600
+        'lifetime': 3600,
     },
     'directory-cache': {
-        'lifetime': 3600
+        'lifetime': 60,
     },
     'file-cache': {
-        'lifetime': 60,
+        'lifetime': 3600,
         'max-bytes': '100M',
-        'max-files': 1000
+        'max-files': 1000,
     },
 }
 
