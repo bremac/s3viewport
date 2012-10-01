@@ -1,4 +1,14 @@
 import itertools
+import os
+
+
+def expandpath(path):
+    """Return the absolute path corresponding to `path` after expanding
+    home directories and relative paths.
+
+    """
+    return os.path.abspath(os.path.expanduser(path))
+
 
 
 def filter_dict(dictionary, pred):

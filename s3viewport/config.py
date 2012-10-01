@@ -5,7 +5,7 @@ import sys
 
 import yaml
 
-from s3viewport.utils import filter_dict, map_dict
+from s3viewport.utils import expandpath, filter_dict, map_dict
 
 
 # Defaults for file-only settings which may be omitted
@@ -70,7 +70,7 @@ def read_command_line(merged_conf={}):
 
 
 def read_configuration_file(path, mount_point, merged_conf={}):
-    path = os.path.expanduser(path)
+    path = expandpath(path)
 
     if not os.path.exists(path):
         return merged_conf
@@ -83,8 +83,7 @@ def read_configuration_file(path, mount_point, merged_conf={}):
 
     # Expand all mount points to their absolute paths before comparing
     # against the selected mount point (which is already expanded.)
-    mount_points = map_dict(mount_points,
-                            lambda k, v: (os.path.expanduser(k), v))
+    mount_points = map_dict(mount_points, lambda k, v: (expandpath(k), v))
 
     mount_point_conf = mount_points.get(mount_point, {})
     merged_conf.update(default_conf)
@@ -119,7 +118,8 @@ def get_configuration(defaults=DEFAULT_SETTINGS):
     # into the main configuration so they have the highest precedence.
     args = read_command_line()
     config_path = args.pop('config-file')
-    mount_point = os.path.expanduser(args['mount-point'])
+    mount_point = expandpath(args['mount-point'])
+    args['mount-point'] = mount_point
 
     merged_conf = dict(defaults)
     merged_conf = read_configuration_file(config_path, mount_point, merged_conf)
