@@ -1,5 +1,4 @@
 import argparse
-import getpass
 import os
 import sys
 
@@ -8,7 +7,7 @@ import yaml
 from s3viewport.utils import expandpath, filter_dict, map_dict, merge_dicts
 
 
-# Defaults for file-only settings which may be omitted
+# Default values for omissible settings
 DEFAULT_SETTINGS = {
     'foreground': False,
     'no-input': False,
@@ -27,22 +26,24 @@ DEFAULT_SETTINGS = {
 }
 
 
-# Fields which the user must somehow specify; if they are omitted, the user
-# will by presented with the specified prompt using the given input method.
-REQUIRED_FIELDS = (
-    # setting        prompt          input method
-    ('mount-point', 'Mount point: ', raw_input),
-    ('bucket',      'S3 bucket: ',   raw_input),
-    ('access-key',  'Access key: ',  raw_input),
-    ('secret-key',  'Secret key: ',  getpass.getpass),
-)
+# Required setting names, and prompts for the user if they are omitted
+REQUIRED_SETTINGS = {
+    'mount-point': 'Mount point: ',
+    'bucket':      'S3 bucket: ',
+    'access-key':  'Access key: ',
+    'secret-key':  'Secret key: ',
+}
 
 
 def read_command_line():
-    parser = argparse.ArgumentParser(description='TODO: Description')
+    """Returns a dict containing the arguments specified on the command line"""
 
-    # TODO: Describe the utility
+    parser = argparse.ArgumentParser(
+        description='Mount an S3 bucket as a read-only filesystem')
 
+    # All arguments must default to None so that they can be filtered
+    # out of the returned dictionary; otherwise, the argument defaults
+    # will override settings from the configuration file.
     parser.add_argument('mount-point',
                         help='where to mount the bucket')
     parser.add_argument('--bucket', dest='bucket',
@@ -69,11 +70,17 @@ def read_command_line():
     return filter_dict(vars(args), lambda k, v: v is not None)
 
 
-def read_configuration_file(path, mount_point, merged_conf={}):
+def read_configuration_file(path, mount_point):
+    """Reads the YAML file at the location `path`, and returns a pair of
+    dicts. The first dict contains the default settings for all mount points,
+    while the second contains settings for the selected mount point.
+
+    """
+
     path = expandpath(path)
 
     if not os.path.exists(path):
-        return merged_conf
+        return {}, {}
 
     with open(path, 'r') as f:
         conf = yaml.load(f)
@@ -84,18 +91,21 @@ def read_configuration_file(path, mount_point, merged_conf={}):
     # Expand all mount points to their absolute paths before comparing
     # against the selected mount point (which is already expanded.)
     mount_points = map_dict(mount_points, lambda k, v: (expandpath(k), v))
-
     mount_point_conf = mount_points.get(mount_point, {})
-    merge_dicts(merged_conf, default_conf)
-    merge_dicts(merged_conf, mount_point_conf)
 
-    return merged_conf
+    return default_conf, mount_point_conf
 
 
 def validate_missing_information(conf):
+    """Validates settings in the merged dict `conf`. Prints an error if
+    any settings specified in `REQUIRED_SETTINGS` are missing from `conf`.
+    If any error is detected, this function causes the program to exit
+    with a non-zero exit code.
+
+    """
     failed = False
 
-    for field, _, _ in REQUIRED_FIELDS:
+    for field, _ in REQUIRED_SETTINGS.items():
         if field not in conf:
             print 'error: missing configuration for "{0}"'.format(field)
             failed = True
@@ -105,24 +115,36 @@ def validate_missing_information(conf):
 
 
 def request_missing_information(conf):
-    for field, prompt, method in REQUIRED_FIELDS:
+    """Validates the settings in the merged dict `conf`. Prompts the user to
+    enter any required settings which may have been omitted, and returns a
+    copy of `conf` with the missing settings filled in.
+
+    """
+    for field, prompt in REQUIRED_SETTINGS.items():
         if field not in conf:
-            conf[field] = method(prompt)
+            conf[field] = raw_input(prompt)
 
     return conf
 
 
 def get_configuration(defaults=DEFAULT_SETTINGS):
+    """Reads command line arguments and a YAML configuration file, and
+    returns a dict of settings.
+
+    """
     # We need to read the command-line arguments first to determine the
     # configuration directory and mount point, but we merge them last
     # into the main configuration so they have the highest precedence.
     arg_conf = read_command_line()
-    config_path = arg_conf.pop('config-file')
+    path = arg_conf.pop('config-file')
     mount_point = expandpath(arg_conf['mount-point'])
     arg_conf['mount-point'] = mount_point
 
+    default_conf, mount_point_conf = read_configuration_file(path, mount_point)
+
     merged_conf = dict(defaults)
-    merged_conf = read_configuration_file(config_path, mount_point, merged_conf)
+    merge_dicts(merged_conf, default_conf)
+    merge_dicts(merged_conf, mount_point_conf)
     merge_dicts(merged_conf, arg_conf)
 
     if merged_conf.get('no-input', False):
