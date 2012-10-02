@@ -70,8 +70,8 @@ defaults:
 mount-points:
     ~/mnt/one:
         bucket: bucket-one
-        access-key: ASKJY!*LKASH(*!@LKAS
-        secret-key: ASLI*&!@YOILHASD(O*!@U:LA(S*:P!@)N(DS*!(
+        access-key: ASIUSDKJADAHS52SKJSA
+        secret-key: ASLI7N/YOILHASD9O000UASAFSQEPJGLNMDMMBDE
 
         file-cache:
             lifetime: 600
@@ -79,7 +79,7 @@ mount-points:
 
     ~/mnt/two:
         bucket: bucket-two
-        access-key: ASIU&@#>LSAUP(!@OUPE
+        access-key: ASM923K9DKL92JUIAM23
 ```
 
 This configuration file sets up two mount points, `~/mnt/one`, and
@@ -92,3 +92,21 @@ This configuration file sets up two mount points, `~/mnt/one`, and
 
 * `~/mnt/two` configures only the bucket and access key settings; it will
   require a secret key to be specified in order to mount the bucket.
+
+Of course, the most configurations will be much simpler. If you want to
+mount a few buckets that all share the same credentials, the following
+would suffice:
+
+```yaml
+
+defaults:
+    access-key: ASIUSDKJADAHS52SKJSA
+    secret-key: ASLI7N/YOILHASD9O000UASAFSQEPJGLNMDMMBDE
+
+mount-points:
+    ~/mnt/one:
+        bucket: bucket-one
+
+    ~/mnt/two:
+        bucket: bucket-two
+```
