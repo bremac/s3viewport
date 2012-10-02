@@ -3,7 +3,7 @@ s3viewport
 
 `s3viewport` is a simple read-only S3 filesystem based on
 [boto](http://docs.pythonboto.org/en/latest/index.html) and
-[fusepy](https://github.com/terencehonles/fusepy). `s3viewport` is a hassle-free
+[fusepy](https://github.com/terencehonles/fusepy). It provides a hassle-free
 way to access files stored in S3, regardless of how they got there.
 
 
