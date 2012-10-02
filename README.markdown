@@ -95,7 +95,7 @@ This configuration file sets up two mount points, `~/mnt/one`, and
 
 Of course, the most configurations will be much simpler. If you want to
 mount a few buckets that all share the same credentials, the following
-would suffice:
+will be enough:
 
 ```yaml
 
