@@ -1,9 +1,10 @@
 s3viewport
 ==========
 
-Read-only S3 FUSE filesystem based on boto. Useful for viewing logs or other
-things that your servers are sending to S3 for safekeeping. Still alpha-quality,
-but at least it won't delete your files!
+`s3viewport` is a simple read-only S3 filesystem based on
+[boto](http://docs.pythonboto.org/en/latest/index.html) and
+[fusepy](https://github.com/terencehonles/fusepy). `s3viewport` is a hassle-free
+way to access files stored in S3, regardless of how they got there.
 
 
 Basic Usage
