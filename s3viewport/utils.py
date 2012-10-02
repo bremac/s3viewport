@@ -72,7 +72,7 @@ SI_SUFFIXES = {
 
 
 def parse_value_with_si_suffix(string):
-    """Convert a string containing an positive integer and a SI
+    """Convert a string containing a positive integer and a SI
     suffix (ex. 4k, 100M, 131G) into its integer representation.
 
     """
