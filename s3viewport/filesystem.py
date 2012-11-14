@@ -178,7 +178,7 @@ class S3Viewport(LoggingMixIn, Operations):
 
     def __init__(self, conf):
         connection = S3Connection(conf['access-key'], conf['secret-key'])
-        self.bucket = connection.lookup(conf['bucket'])
+        self.bucket = connection.get_bucket(conf['bucket'])
         self._lock = threading.RLock()
         self.attribute_cache = S3AttributeCache(conf['attribute-cache'])
         self.file_cache = S3FileCache(conf['file-cache'])
