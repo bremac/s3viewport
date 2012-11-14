@@ -165,7 +165,7 @@ class S3FileCache(BasePathCache):
 
 def key_basename(key):
     name = key.name.encode('utf-8')
-    return name.strip('/').split('/')[-1]
+    return key.name.strip('/').split('/')[-1]
 
 
 class S3Viewport(LoggingMixIn, Operations):
@@ -187,7 +187,7 @@ class S3Viewport(LoggingMixIn, Operations):
         self.gid = os.getgid()
         self.uid = os.getuid()
 
-        cache_path = "~/.s3viewport/cache/{0}".format(self.bucket.name)
+        cache_path = u"~/.s3viewport/cache/{0}".format(self.bucket.name)
         self.cache_path = os.path.expanduser(cache_path)
 
         if not os.path.exists(self.cache_path):
@@ -230,7 +230,7 @@ class S3Viewport(LoggingMixIn, Operations):
         self.directory_cache.expire()
 
         if path not in self.directory_cache:
-            s3_path = '{0}/'.format(path.rstrip('/')).lstrip('/')
+            s3_path = u'{0}/'.format(path.rstrip('/')).lstrip('/')
             child_keys = self.bucket.list(prefix=s3_path, delimiter='/')
 
             # Add the child keys to the directory cache
@@ -240,7 +240,7 @@ class S3Viewport(LoggingMixIn, Operations):
             # Add the child keys to the attribute cache
             for key in child_keys:
                 is_directory = isinstance(key, boto.s3.prefix.Prefix)
-                child_path = '/{0}'.format(key.name).rstrip('/')
+                child_path = u'/{0}'.format(key.name).rstrip('/')
 
                 if is_directory:
                     mode = self.DIRECTORY_MODE
@@ -292,6 +292,7 @@ def run():
     fs = s3viewport.filesystem.S3Viewport(conf)
     fuse = FUSE(fs,
                 conf['mount-point'],
+                encoding='utf-8',
                 foreground=conf['foreground'],
                 nothreads=True)
 
